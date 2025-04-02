@@ -5,12 +5,12 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 
-class Budget :  AppCompatActivity() {
+class Venituri :  AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_budget)
-        var textBudget = findViewById<TextView>(R.id.textView5)
-        textBudget.text="500"
+        setContentView(R.layout.activity_venituri)
+        var textVenituri = findViewById<TextView>(R.id.textView6)
+        textVenituri.text="10500"
     }
 }

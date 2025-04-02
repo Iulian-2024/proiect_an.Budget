@@ -50,5 +50,11 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
 
         }
+        val B_venituri = findViewById<Button>(R.id.button3)
+        B_venituri.setOnClickListener {
+            val intent2 = Intent(this, Venituri::class.java)
+            startActivity(intent2)
+
+        }
     }
 }

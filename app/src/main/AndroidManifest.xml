@@ -24,8 +24,8 @@
             </intent-filter>
 
         </activity>
-        <activity
-            android:name=".Budget"/>
+        <activity android:name=".Budget"/>
+        <activity android:name=".Venituri"/>
     </application>
 
 </manifest>
