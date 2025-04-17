@@ -30,6 +30,8 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+
         val incomes = listOf(1000.0, 2500.0, 750.0)
         val expenses = listOf(500.0, 1200.0, 300.0)
         val totalIncome = incomes.sum()
