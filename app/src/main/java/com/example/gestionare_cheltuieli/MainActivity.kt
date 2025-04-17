@@ -31,8 +31,7 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-
-        val incomes = listOf(1000.0, 2500.0, 750.0)
+        val incomes = mutableListOf(1000.0, 2500.0, 750.0)
         val expenses = listOf(500.0, 1200.0, 300.0)
         val totalIncome = incomes.sum()
         val totalExpense = expenses.sum()
@@ -45,6 +44,13 @@ class MainActivity : AppCompatActivity() {
         val totalExpenseText = findViewById<TextView>(R.id.textView3)
         totalExpenseText.text= totalExpense.toString()
 
+        val button4 = findViewById<Button>(R.id.button4)
+        button4.setOnClickListener {
+           incomes.add(10000.0)
+            val totalIncome2 = incomes.sum()
+            totalIncomeText.text= totalIncome2.toString()
+            Log.i("Venituri",incomes.toString())
+        }
 
         val button = findViewById<Button>(R.id.button)
         button.setOnClickListener {
