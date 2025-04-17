@@ -17,6 +17,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.textfield.TextInputEditText
 import org.w3c.dom.Text as Text1
 
 class MainActivity : AppCompatActivity() {
@@ -43,10 +44,10 @@ class MainActivity : AppCompatActivity() {
         totalIncomeText.text= totalIncome.toString()
         val totalExpenseText = findViewById<TextView>(R.id.textView3)
         totalExpenseText.text= totalExpense.toString()
-
+        val inregistrare = findViewById<TextInputEditText>(R.id.recording)
         val button4 = findViewById<Button>(R.id.button4)
         button4.setOnClickListener {
-           incomes.add(10000.0)
+           incomes.add(inregistrare.text.toString().toDouble())
             val totalIncome2 = incomes.sum()
             totalIncomeText.text= totalIncome2.toString()
             Log.i("Venituri",incomes.toString())
