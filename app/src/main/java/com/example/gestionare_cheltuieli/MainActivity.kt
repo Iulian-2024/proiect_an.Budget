@@ -21,7 +21,13 @@ import com.google.android.material.textfield.TextInputEditText
 import org.w3c.dom.Text as Text1
 
 class MainActivity : AppCompatActivity() {
-    @SuppressLint("MissingPermission")
+
+    private val incomes = mutableListOf(1000.0, 2500.0, 750.0)
+    private val expenses = mutableListOf(500.0, 1200.0, 300.0)
+
+    private lateinit var totalIncomeText: TextView
+    private lateinit var totalExpenseText: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -32,38 +38,55 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        val incomes = mutableListOf(1000.0, 2500.0, 750.0)
-        val expenses = listOf(500.0, 1200.0, 300.0)
-        val totalIncome = incomes.sum()
-        val totalExpense = expenses.sum()
-        Log.i("Venituri", totalIncome.toString())
-        Log.i("Cheltuieli", totalExpense.toString())
-        val budget = totalIncome-totalExpense
-        Log.i("Budget",budget.toString())
-        var totalIncomeText = findViewById<TextView>(R.id.textView)
-        totalIncomeText.text= totalIncome.toString()
-        val totalExpenseText = findViewById<TextView>(R.id.textView3)
-        totalExpenseText.text= totalExpense.toString()
-        val inregistrare = findViewById<TextInputEditText>(R.id.recording)
+        totalIncomeText = findViewById(R.id.textView)
+        totalExpenseText = findViewById(R.id.textView3)
+
+        updateUI()
+
         val button4 = findViewById<Button>(R.id.button4)
         button4.setOnClickListener {
-           incomes.add(inregistrare.text.toString().toDouble())
-            val totalIncome2 = incomes.sum()
-            totalIncomeText.text= totalIncome2.toString()
-            Log.i("Venituri",incomes.toString())
+            val intent = Intent(this, NewRecordActivity::class.java)
+            startActivityForResult(intent, 1)
         }
 
         val button = findViewById<Button>(R.id.button)
         button.setOnClickListener {
             val intent = Intent(this, Budget::class.java)
             startActivity(intent)
-
+            intent.putExtra("income", incomes.sum())
+            intent.putExtra("expense", expenses.sum())
+            startActivity(intent)
         }
+
         val B_venituri = findViewById<Button>(R.id.button3)
         B_venituri.setOnClickListener {
             val intent2 = Intent(this, Venituri::class.java)
             startActivity(intent2)
-
         }
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            val amount = data?.getDoubleExtra("amount", 0.0) ?: return
+            val type = data.getStringExtra("type")
+
+            if (type == "income") {
+                incomes.add(amount)
+            } else {
+                expenses.add(amount)
+            }
+
+            updateUI()
+        }
+    }
+
+    private fun updateUI() {
+        val totalIncome = incomes.sum()
+        val totalExpense = expenses.sum()
+        totalIncomeText.text = totalIncome.toString()
+        totalExpenseText.text = totalExpense.toString()
+    }
+
 }

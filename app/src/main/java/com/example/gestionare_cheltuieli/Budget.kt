@@ -10,7 +10,12 @@ class Budget :  AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_budget)
-        var textBudget = findViewById<TextView>(R.id.textView5)
-        textBudget.text="500"
+
+        val income = intent.getDoubleExtra("income", 0.0)
+        val expense = intent.getDoubleExtra("expense", 0.0)
+        val difference = income - expense
+
+        val textBudget = findViewById<TextView>(R.id.textView5)
+        textBudget.text = "Diferența: $difference lei"
     }
 }
