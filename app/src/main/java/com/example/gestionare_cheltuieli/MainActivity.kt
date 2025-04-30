@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.gestionare_cheltuieli
 
 import android.annotation.SuppressLint
@@ -10,6 +12,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -17,13 +20,15 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.room.Room
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.launch
 import org.w3c.dom.Text as Text1
 
 class MainActivity : AppCompatActivity() {
 
-    private val incomes = mutableListOf(1000.0, 2500.0, 750.0)
-    private val expenses = mutableListOf(500.0, 1200.0, 300.0)
+
 
     private lateinit var totalIncomeText: TextView
     private lateinit var totalExpenseText: TextView
@@ -38,10 +43,12 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        totalIncomeText = findViewById(R.id.textView)
-        totalExpenseText = findViewById(R.id.textView3)
 
-        updateUI()
+
+        totalIncomeText = findViewById(R.id.textView3)
+        totalExpenseText = findViewById(R.id.textView)
+
+
 
         val button4 = findViewById<Button>(R.id.button4)
         button4.setOnClickListener {
@@ -51,11 +58,26 @@ class MainActivity : AppCompatActivity() {
 
         val button = findViewById<Button>(R.id.button)
         button.setOnClickListener {
-            val intent = Intent(this, Budget::class.java)
-            startActivity(intent)
-            intent.putExtra("income", incomes.sum())
-            intent.putExtra("expense", expenses.sum())
-            startActivity(intent)
+            val db = Room.databaseBuilder(
+                applicationContext,
+                AppDatabase::class.java,
+                "transactions-db"
+            ).build()
+
+            val dao = db.transactionDao()
+
+            lifecycleScope.launch {
+                val transactions = dao.getAll()
+                val incomeTotal = transactions.filter { it.type == "venit" }.sumOf { it.amount }
+                val expenseTotal = transactions.filter { it.type == "cheltuială" }.sumOf { it.amount }
+
+                val intent = Intent(this@MainActivity, Budget::class.java).apply {
+                    putExtra("income", incomeTotal)
+                    putExtra("expense", expenseTotal)
+                }
+
+                startActivity(intent)
+            }
         }
 
         val B_venituri = findViewById<Button>(R.id.button3)
@@ -63,30 +85,95 @@ class MainActivity : AppCompatActivity() {
             val intent2 = Intent(this, Venituri::class.java)
             startActivity(intent2)
         }
-    }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+        val B_cheltuieli = findViewById<Button>(R.id.button2)
+        B_cheltuieli.setOnClickListener {
+            val intent3 = Intent(this, Cheltuieli::class.java)
+            startActivity(intent3)
+        }
 
-        if (requestCode == 1 && resultCode == RESULT_OK) {
-            val amount = data?.getDoubleExtra("amount", 0.0) ?: return
-            val type = data.getStringExtra("type")
+        val textView = findViewById<TextView>(R.id.transactionListTextView)
 
-            if (type == "income") {
-                incomes.add(amount)
-            } else {
-                expenses.add(amount)
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "transactions-db"
+        ).build()
+
+        val dao = db.transactionDao()
+
+        lifecycleScope.launch {
+            val transactions = dao.getAll()
+
+            val formatted = transactions.joinToString("\n") { tranzactie ->
+                "${tranzactie.date} - ${tranzactie.type.uppercase()}: ${tranzactie.amount} lei"
             }
 
-            updateUI()
+            runOnUiThread {
+                textView.text = if (formatted.isEmpty()) "Nicio tranzacție" else formatted
+            }
+        }
+        val clearButton = findViewById<Button>(R.id.button6) // presupunem că ai un buton cu acest ID
+
+        clearButton.setOnClickListener {
+            val db = Room.databaseBuilder(
+                applicationContext,
+                AppDatabase::class.java,
+                "transactions-db"
+            ).build()
+
+            val dao = db.transactionDao()
+
+            lifecycleScope.launch {
+                dao.deleteAll()
+
+                runOnUiThread {
+                    Toast.makeText(this@MainActivity, "Toate tranzacțiile au fost șterse", Toast.LENGTH_SHORT).show()
+                    updateUI() // dacă ai o funcție care reafișează UI-ul
+                }
+            }
         }
     }
 
-    private fun updateUI() {
-        val totalIncome = incomes.sum()
-        val totalExpense = expenses.sum()
-        totalIncomeText.text = totalIncome.toString()
-        totalExpenseText.text = totalExpense.toString()
+    override fun onResume() {
+        super.onResume()
+        updateUI()
     }
+
+    private fun updateUI() {
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "transactions-db"
+        ).build()
+
+        val dao = db.transactionDao()
+        val textView = findViewById<TextView>(R.id.transactionListTextView)
+
+        lifecycleScope.launch {
+            val transactions = dao.getAll()
+
+            val incomes = transactions.filter { it.type == "venit" }.map { it.amount }
+            val expenses = transactions.filter { it.type == "cheltuială" }.map { it.amount }
+
+            val totalIncome = incomes.sum()
+            val totalExpense = expenses.sum()
+
+            val result = transactions.joinToString("\n") {
+                "${it.date} - ${it.type.uppercase()}: ${it.amount} lei"
+            }
+
+            runOnUiThread {
+                totalIncomeText.text = totalIncome.toString() + " lei"
+                totalExpenseText.text = totalExpense.toString() + " lei"
+                textView.text = if (result.isEmpty()) "Nicio tranzacție" else result
+            }
+        }
+    }
+
+
+
+
+
 
 }

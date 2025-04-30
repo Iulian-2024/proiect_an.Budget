@@ -26,6 +26,7 @@
         </activity>
         <activity android:name=".Budget"/>
         <activity android:name=".Venituri"/>
+        <activity android:name=".Cheltuieli"/>
         <activity android:name=".NewRecordActivity"
             tools:ignore="DuplicateActivity" />
     </application>

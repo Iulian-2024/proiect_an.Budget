@@ -8,12 +8,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.room.Room
 import kotlinx.coroutines.launch
 
-class Venituri :  AppCompatActivity() {
+class  Cheltuieli: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_venituri)
-        val textView = findViewById<TextView>(R.id.textView6)
+        var textView = findViewById<TextView>(R.id.textView6)
         val db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
@@ -22,12 +22,12 @@ class Venituri :  AppCompatActivity() {
 
         val dao = db.transactionDao()
         lifecycleScope.launch {
-            val venituri = dao.getAll().filter { it.type == "venit" }
+            val cheltuieli = dao.getAll().filter { it.type == "cheltuială" }
 
-            val text = if (venituri.isEmpty()) {
-                "Nu există venituri înregistrate"
+            val text = if (cheltuieli.isEmpty()) {
+                "Nu există cheltuieli înregistrate"
             } else {
-                venituri.joinToString("\n") {
+                cheltuieli.joinToString("\n") {
                     "${it.date} - ${it.amount} lei"
                 }
             }
