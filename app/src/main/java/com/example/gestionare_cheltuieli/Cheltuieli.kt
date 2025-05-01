@@ -28,7 +28,7 @@ class  Cheltuieli: AppCompatActivity() {
                 "Nu există cheltuieli înregistrate"
             } else {
                 cheltuieli.joinToString("\n") {
-                    "${it.date} - ${it.amount} lei"
+                    "${it.date} - ${it.category.uppercase()}: ${it.amount} lei"
                 }
             }
 

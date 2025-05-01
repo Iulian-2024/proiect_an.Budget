@@ -62,7 +62,9 @@ class MainActivity : AppCompatActivity() {
                 applicationContext,
                 AppDatabase::class.java,
                 "transactions-db"
-            ).build()
+            )
+                .fallbackToDestructiveMigration()
+                .build()
 
             val dao = db.transactionDao()
 
@@ -98,21 +100,28 @@ class MainActivity : AppCompatActivity() {
             applicationContext,
             AppDatabase::class.java,
             "transactions-db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
 
         val dao = db.transactionDao()
 
+        textView.setOnClickListener {
+            val intent = Intent(this, TranzactiiActivity::class.java)
+            startActivity(intent)
+        }
+
         lifecycleScope.launch {
             val transactions = dao.getAll()
-
             val formatted = transactions.joinToString("\n") { tranzactie ->
-                "${tranzactie.date} - ${tranzactie.type.uppercase()}: ${tranzactie.amount} lei"
+                "${tranzactie.date} - ${tranzactie.category.uppercase()}: ${tranzactie.amount} lei"
             }
 
             runOnUiThread {
                 textView.text = if (formatted.isEmpty()) "Nicio tranzacție" else formatted
             }
         }
+
         val clearButton = findViewById<Button>(R.id.button6) // presupunem că ai un buton cu acest ID
 
         clearButton.setOnClickListener {
@@ -120,7 +129,9 @@ class MainActivity : AppCompatActivity() {
                 applicationContext,
                 AppDatabase::class.java,
                 "transactions-db"
-            ).build()
+            )
+                .fallbackToDestructiveMigration()
+                .build()
 
             val dao = db.transactionDao()
 
@@ -145,7 +156,9 @@ class MainActivity : AppCompatActivity() {
             applicationContext,
             AppDatabase::class.java,
             "transactions-db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
 
         val dao = db.transactionDao()
         val textView = findViewById<TextView>(R.id.transactionListTextView)
@@ -160,7 +173,7 @@ class MainActivity : AppCompatActivity() {
             val totalExpense = expenses.sum()
 
             val result = transactions.joinToString("\n") {
-                "${it.date} - ${it.type.uppercase()}: ${it.amount} lei"
+                "${it.date} - ${it.category.uppercase()}: ${it.amount} lei"
             }
 
             runOnUiThread {

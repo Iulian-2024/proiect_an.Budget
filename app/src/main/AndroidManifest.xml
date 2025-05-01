@@ -29,6 +29,7 @@
         <activity android:name=".Cheltuieli"/>
         <activity android:name=".NewRecordActivity"
             tools:ignore="DuplicateActivity" />
+        <activity android:name=".TranzactiiActivity"/>
     </application>
 
 </manifest>

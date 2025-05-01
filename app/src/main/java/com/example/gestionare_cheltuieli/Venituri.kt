@@ -28,7 +28,7 @@ class Venituri :  AppCompatActivity() {
                 "Nu există venituri înregistrate"
             } else {
                 venituri.joinToString("\n") {
-                    "${it.date} - ${it.amount} lei"
+                    "${it.date} - ${it.category.uppercase()}: ${it.amount} lei"
                 }
             }
 
