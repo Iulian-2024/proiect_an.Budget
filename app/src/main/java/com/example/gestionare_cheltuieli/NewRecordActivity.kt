@@ -27,7 +27,7 @@ class NewRecordActivity: AppCompatActivity() {
         val button5 = findViewById<Button>(R.id.button5)
         val spinner = findViewById<Spinner>(R.id.spinner)
 
-        val categories = listOf("Salariu", "Alocație", "Transport", "Mâncare", "Altele")
+        val categories = listOf("Salariu", "Alocație", "Vânzare", "Bonus", "Dobândă", "Transfer", "Schimb Valutar", "Împrumut", "Transport", "Mâncare", "Altele")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter

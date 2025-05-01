@@ -107,7 +107,7 @@ class MainActivity : AppCompatActivity() {
         val dao = db.transactionDao()
 
         textView.setOnClickListener {
-            val intent = Intent(this, TranzactiiActivity::class.java)
+            val intent = Intent(this, TranzactionLook::class.java)
             startActivity(intent)
         }
 

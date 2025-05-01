@@ -31,7 +31,7 @@ class TranzactiiActivity : AppCompatActivity() {
         dao = db.transactionDao()
 
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = TransactionAdapter(emptyList(), selectedItems)
+        adapter = TransactionAdapter(emptyList(), selectedItems )
         recyclerView.adapter = adapter
 
         loadTransactions()
@@ -44,6 +44,8 @@ class TranzactiiActivity : AppCompatActivity() {
             }
         }
     }
+
+
 
     private fun loadTransactions() {
         lifecycleScope.launch {

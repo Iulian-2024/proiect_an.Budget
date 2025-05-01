@@ -30,6 +30,7 @@
         <activity android:name=".NewRecordActivity"
             tools:ignore="DuplicateActivity" />
         <activity android:name=".TranzactiiActivity"/>
+        <activity android:name=".TranzactionLook"/>
     </application>
 
 </manifest>
