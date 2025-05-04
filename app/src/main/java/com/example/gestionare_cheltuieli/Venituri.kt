@@ -18,11 +18,13 @@ class Venituri :  AppCompatActivity() {
             applicationContext,
             AppDatabase::class.java,
             "transactions-db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
 
         val dao = db.transactionDao()
         lifecycleScope.launch {
-            val venituri = dao.getAll().filter { it.type == "venit" }
+            val venituri = dao.getAll().filter { it.type == "Venit" }
 
             val text = if (venituri.isEmpty()) {
                 "Nu există venituri înregistrate"

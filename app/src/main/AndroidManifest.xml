@@ -31,6 +31,12 @@
             tools:ignore="DuplicateActivity" />
         <activity android:name=".TranzactiiActivity"/>
         <activity android:name=".TranzactionLook"/>
+        <activity android:name=".EditTransactionActivity"/>
+        <activity android:name=".SourceListActivity" />
     </application>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
 
 </manifest>

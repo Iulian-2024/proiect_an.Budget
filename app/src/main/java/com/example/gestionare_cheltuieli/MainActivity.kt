@@ -7,10 +7,13 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -30,8 +33,8 @@ class MainActivity : AppCompatActivity() {
 
 
 
-    private lateinit var totalIncomeText: TextView
-    private lateinit var totalExpenseText: TextView
+    //private lateinit var totalIncomeText: TextView
+    //private lateinit var totalExpenseText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,8 +48,8 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        totalIncomeText = findViewById(R.id.textView3)
-        totalExpenseText = findViewById(R.id.textView)
+        //totalIncomeText = findViewById(R.id.textView3)
+        //totalExpenseText = findViewById(R.id.textView)
 
 
 
@@ -58,6 +61,9 @@ class MainActivity : AppCompatActivity() {
 
         val button = findViewById<Button>(R.id.button)
         button.setOnClickListener {
+
+
+
             val db = Room.databaseBuilder(
                 applicationContext,
                 AppDatabase::class.java,
@@ -69,7 +75,39 @@ class MainActivity : AppCompatActivity() {
             val dao = db.transactionDao()
 
             lifecycleScope.launch {
+                db.transactionDao().deleteAll()
+                ExcelImporter.importSources(this@MainActivity, db)
+                val nrSurse = db.sourceDao().count()
+
+                runOnUiThread {
+                    Toast.makeText(this@MainActivity, "Sursele au fost importate ($nrSurse)!", Toast.LENGTH_SHORT).show()
+                }
+
+                val surse = db.sourceDao().getAll()
+                surse.forEach {
+                    Log.d("SOURCE", "ID=${it.id} | ${it.name} (${it.type}) - ${it.initialAmount} lei")
+                }
+            }
+
+            lifecycleScope.launch {
+                db.sourceDao().deleteAll()
+                ExcelImporter.importTransactions(this@MainActivity, db)
+                val nrTranzactii = db.transactionDao().count()
+                runOnUiThread {
+                    Toast.makeText(this@MainActivity, "Tranzacțiile au fost importate ($nrTranzactii)!", Toast.LENGTH_SHORT).show()
+                }
+                val tranzactii = db.transactionDao().getAll()
+                tranzactii.forEach {
+                    //Log.d("TRANSACTION", "ID=${it.id} | ${it.date} - ${it.type.uppercase()} ${it.amount} lei | Cat=${it.category} | SourceId=${it.sourceId}")
+                }
+            }
+
+
+            lifecycleScope.launch {
                 val transactions = dao.getAll()
+
+
+
                 val incomeTotal = transactions.filter { it.type == "venit" }.sumOf { it.amount }
                 val expenseTotal = transactions.filter { it.type == "cheltuială" }.sumOf { it.amount }
 
@@ -77,6 +115,7 @@ class MainActivity : AppCompatActivity() {
                     putExtra("income", incomeTotal)
                     putExtra("expense", expenseTotal)
                 }
+
 
                 startActivity(intent)
             }
@@ -111,6 +150,91 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        val sourceDao = db.sourceDao()
+        val transactionDao = db.transactionDao()
+        val layout = findViewById<LinearLayout>(R.id.sourceTotalsLayout) // layoutul în care afișăm
+
+
+
+
+
+        lifecycleScope.launch {
+
+            val sources = sourceDao.getAll()
+            val transactions = transactionDao.getAll()
+
+
+
+            runOnUiThread {
+                layout.removeAllViews()
+
+                // Grupare și calcul total per tip (Card, Cash, etc.)
+                val sourcesByType = sources.groupBy { it.type }
+                val totalPerType = sourcesByType.mapValues { (_, surse) ->
+                    surse.sumOf { source ->
+                        val sourceTransactions = transactions.filter { it.sourceId == source.id }
+                        val venituri = sourceTransactions.filter { it.type == "Venit" }.sumOf { it.amount }
+                        val cheltuieli = sourceTransactions.filter { it.type == "Cheltuiala" }.sumOf { it.amount }
+                        source.initialAmount + venituri - cheltuieli
+                    }
+                }
+
+                // Convertim în listă de perechi (tip, sumă)
+                val totaluriList = totalPerType.entries.toList()
+
+                for (i in totaluriList.indices step 2) {
+                    val rowLayout = LinearLayout(this@MainActivity).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        gravity = Gravity.CENTER
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                    }
+
+                    for (j in 0..1) {
+                        val index = i + j
+                        if (index < totaluriList.size) {
+                            val (tip, sold) = totaluriList[index]
+
+                            val titlu = TextView(this@MainActivity).apply {
+                                text = tip
+                                textSize = 16f
+                                setTypeface(null, Typeface.BOLD)
+                                gravity = Gravity.CENTER
+                            }
+
+                            val suma = TextView(this@MainActivity).apply {
+                                text = "%.2f lei".format(sold)
+                                textSize = 14f
+                                gravity = Gravity.CENTER
+                            }
+
+                            val bloc = LinearLayout(this@MainActivity).apply {
+                                orientation = LinearLayout.VERTICAL
+                                setPadding(16, 16, 16, 16)
+                                gravity = Gravity.CENTER
+                                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                                addView(titlu)
+                                addView(suma)
+                            }
+
+                            // Poți adăuga funcție de click dacă vrei
+                            bloc.setOnClickListener {
+                                val intent = Intent(this@MainActivity, SourceListActivity::class.java)
+                                intent.putExtra("sourceType", tip)
+                                startActivity(intent)
+                            }
+
+                            rowLayout.addView(bloc)
+                        }
+                    }
+
+                    layout.addView(rowLayout)
+                }
+            }
+        }
+
         lifecycleScope.launch {
             val transactions = dao.getAll()
             val formatted = transactions.joinToString("\n") { tranzactie ->
@@ -134,15 +258,17 @@ class MainActivity : AppCompatActivity() {
                 .build()
 
             val dao = db.transactionDao()
+            val ds=db.sourceDao()
 
             lifecycleScope.launch {
                 dao.deleteAll()
-
+                ds.deleteAll()
                 runOnUiThread {
                     Toast.makeText(this@MainActivity, "Toate tranzacțiile au fost șterse", Toast.LENGTH_SHORT).show()
                     updateUI() // dacă ai o funcție care reafișează UI-ul
                 }
             }
+
         }
     }
 
@@ -166,8 +292,8 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val transactions = dao.getAll()
 
-            val incomes = transactions.filter { it.type == "venit" }.map { it.amount }
-            val expenses = transactions.filter { it.type == "cheltuială" }.map { it.amount }
+            val incomes = transactions.filter { it.type == "Venit" }.map { it.amount }
+            val expenses = transactions.filter { it.type == "Cheltuiala" }.map { it.amount }
 
             val totalIncome = incomes.sum()
             val totalExpense = expenses.sum()
@@ -177,11 +303,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             runOnUiThread {
-                totalIncomeText.text = totalIncome.toString() + " lei"
-                totalExpenseText.text = totalExpense.toString() + " lei"
+                //totalIncomeText.text = totalIncome.toString() + " lei"
+                //totalExpenseText.text = totalExpense.toString() + " lei"
                 textView.text = if (result.isEmpty()) "Nicio tranzacție" else result
             }
         }
+
     }
 
 

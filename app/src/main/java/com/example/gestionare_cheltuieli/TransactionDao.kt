@@ -20,5 +20,12 @@ interface TransactionDao {
     @Delete
     suspend fun deleteTransaction(transaction: Transaction)
 
+    @Query("SELECT * FROM transactions WHERE id = :id")
+    suspend fun getById(id: Int): Transaction?
 
+    @Update
+    suspend fun updateTransaction(transaction: Transaction)
+
+    @Query("SELECT COUNT(*) FROM transactions")
+    suspend fun count(): Int
 }

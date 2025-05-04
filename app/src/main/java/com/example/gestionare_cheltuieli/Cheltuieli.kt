@@ -18,11 +18,13 @@ class  Cheltuieli: AppCompatActivity() {
             applicationContext,
             AppDatabase::class.java,
             "transactions-db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
 
         val dao = db.transactionDao()
         lifecycleScope.launch {
-            val cheltuieli = dao.getAll().filter { it.type == "cheltuială" }
+            val cheltuieli = dao.getAll().filter { it.type == "Cheltuiala" }
 
             val text = if (cheltuieli.isEmpty()) {
                 "Nu există cheltuieli înregistrate"

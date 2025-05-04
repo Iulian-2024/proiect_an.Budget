@@ -1,5 +1,6 @@
 package com.example.gestionare_cheltuieli
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -23,15 +24,27 @@ class TranzactiiActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         val deleteButton = findViewById<Button>(R.id.deleteButton)
 
+
+
         val db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
             "transactions-db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
         dao = db.transactionDao()
 
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = TransactionAdapter(emptyList(), selectedItems )
+        adapter = TransactionAdapter(
+            emptyList(),
+            selectedItems,
+            onItemClick = { tranzactie ->
+                val intent = Intent(this, EditTransactionActivity::class.java)
+                intent.putExtra("transaction_id", tranzactie.id)
+                startActivity(intent)
+            }
+        )
         recyclerView.adapter = adapter
 
         loadTransactions()
@@ -45,7 +58,10 @@ class TranzactiiActivity : AppCompatActivity() {
         }
     }
 
-
+    override fun onResume() {
+        super.onResume()
+        loadTransactions()
+    }
 
     private fun loadTransactions() {
         lifecycleScope.launch {

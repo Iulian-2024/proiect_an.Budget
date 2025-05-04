@@ -23,7 +23,9 @@ class TranzactionLook: AppCompatActivity() {
             applicationContext,
             AppDatabase::class.java,
             "transactions-db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
         val dao = db.transactionDao()
 
         lifecycleScope.launch {
@@ -33,6 +35,9 @@ class TranzactionLook: AppCompatActivity() {
             } else {
                 tranzactii.joinToString("\n") {
                     "${it.date} - ${it.category.uppercase()}: ${it.amount} lei"
+
+
+
                 }
             }
 

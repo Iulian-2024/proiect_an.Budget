@@ -11,5 +11,6 @@ data class Transaction(
     val type: String, // „income” sau „expense”
     val category: String, // 🔹 Nou câmp
     val description: String,
-    val date: String
+    val date: String,
+    val sourceId: Int
 )
