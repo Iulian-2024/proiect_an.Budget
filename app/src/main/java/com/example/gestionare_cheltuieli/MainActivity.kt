@@ -2,13 +2,8 @@
 
 package com.example.gestionare_cheltuieli
 
-import android.annotation.SuppressLint
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -17,24 +12,28 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
-import org.w3c.dom.Text as Text1
+
+
 
 class MainActivity : AppCompatActivity() {
 
+    private suspend fun reinicializeazaDate(db: AppDatabase) {
+        db.sourceDao().deleteAll()
+        db.transactionDao().deleteAll()
+        db.categorieDao().deleteAll()
 
-
-    //private lateinit var totalIncomeText: TextView
-    //private lateinit var totalExpenseText: TextView
+        ExcelImporter.importSources(this@MainActivity, db)
+        ExcelImporter.importCategories(this@MainActivity, db)
+        ExcelImporter.importTransactions(this@MainActivity, db)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,76 +47,32 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        //totalIncomeText = findViewById(R.id.textView3)
-        //totalExpenseText = findViewById(R.id.textView)
 
 
+        val db = DatabaseProvider.getDatabase(this)
+        val dao = db.transactionDao()
+        val sourceDao = db.sourceDao()
+        val categorieDao = db.categorieDao()
 
         val button4 = findViewById<Button>(R.id.button4)
         button4.setOnClickListener {
-            val intent = Intent(this, NewRecordActivity::class.java)
+            val intent = Intent(this, QRReceiptScannerActivity::class.java)
             startActivityForResult(intent, 1)
         }
 
         val button = findViewById<Button>(R.id.button)
         button.setOnClickListener {
-
-
-
-            val db = Room.databaseBuilder(
-                applicationContext,
-                AppDatabase::class.java,
-                "transactions-db"
-            )
-                .fallbackToDestructiveMigration()
-                .build()
-
-            val dao = db.transactionDao()
-
             lifecycleScope.launch {
-                db.transactionDao().deleteAll()
-                ExcelImporter.importSources(this@MainActivity, db)
-                val nrSurse = db.sourceDao().count()
+                reinicializeazaDate(db)
 
+                val lista = dao.getAllWithCategorieAndSource()
+                lista.forEach {
+                    Log.d("TEST", "${it.transaction.date}: ${it.categorie.category} (${it.categorie.type})")
+                }
+                val nrTranzactii = dao.count()
                 runOnUiThread {
-                    Toast.makeText(this@MainActivity, "Sursele au fost importate ($nrSurse)!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Import complet ($nrTranzactii tranzacții)", Toast.LENGTH_SHORT).show()
                 }
-
-                val surse = db.sourceDao().getAll()
-                surse.forEach {
-                    Log.d("SOURCE", "ID=${it.id} | ${it.name} (${it.type}) - ${it.initialAmount} lei")
-                }
-            }
-
-            lifecycleScope.launch {
-                db.sourceDao().deleteAll()
-                ExcelImporter.importTransactions(this@MainActivity, db)
-                val nrTranzactii = db.transactionDao().count()
-                runOnUiThread {
-                    Toast.makeText(this@MainActivity, "Tranzacțiile au fost importate ($nrTranzactii)!", Toast.LENGTH_SHORT).show()
-                }
-                val tranzactii = db.transactionDao().getAll()
-                tranzactii.forEach {
-                    //Log.d("TRANSACTION", "ID=${it.id} | ${it.date} - ${it.type.uppercase()} ${it.amount} lei | Cat=${it.category} | SourceId=${it.sourceId}")
-                }
-            }
-
-
-            lifecycleScope.launch {
-                val transactions = dao.getAll()
-
-
-
-                val incomeTotal = transactions.filter { it.type == "venit" }.sumOf { it.amount }
-                val expenseTotal = transactions.filter { it.type == "cheltuială" }.sumOf { it.amount }
-
-                val intent = Intent(this@MainActivity, Budget::class.java).apply {
-                    putExtra("income", incomeTotal)
-                    putExtra("expense", expenseTotal)
-                }
-
-
-                startActivity(intent)
             }
         }
 
@@ -133,53 +88,37 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent3)
         }
 
-        val textView = findViewById<TextView>(R.id.transactionListTextView)
-
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java,
-            "transactions-db"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
-
-        val dao = db.transactionDao()
-
-        textView.setOnClickListener {
-            val intent = Intent(this, TranzactionLook::class.java)
-            startActivity(intent)
-        }
-
-        val sourceDao = db.sourceDao()
-        val transactionDao = db.transactionDao()
-        val layout = findViewById<LinearLayout>(R.id.sourceTotalsLayout) // layoutul în care afișăm
-
-
-
-
+        val layout = findViewById<LinearLayout>(R.id.sourceTotalsLayout)
 
         lifecycleScope.launch {
-
             val sources = sourceDao.getAll()
-            val transactions = transactionDao.getAll()
-
-
+            val transactions = dao.getAll()
+            val categorii = categorieDao.getAll()
 
             runOnUiThread {
                 layout.removeAllViews()
 
-                // Grupare și calcul total per tip (Card, Cash, etc.)
+                val categoriiMap = categorii.associateBy { it.id }
                 val sourcesByType = sources.groupBy { it.type }
+
                 val totalPerType = sourcesByType.mapValues { (_, surse) ->
                     surse.sumOf { source ->
                         val sourceTransactions = transactions.filter { it.sourceId == source.id }
-                        val venituri = sourceTransactions.filter { it.type == "Venit" }.sumOf { it.amount }
-                        val cheltuieli = sourceTransactions.filter { it.type == "Cheltuiala" }.sumOf { it.amount }
+
+                        val venituri = sourceTransactions.filter {
+                            val cat = categoriiMap[it.categorieId]
+                            cat?.type == "venit"
+                        }.sumOf { it.amount }
+
+                        val cheltuieli = sourceTransactions.filter {
+                            val cat = categoriiMap[it.categorieId]
+                            cat?.type == "cheltuiala"
+                        }.sumOf { it.amount }
+
                         source.initialAmount + venituri - cheltuieli
                     }
                 }
 
-                // Convertim în listă de perechi (tip, sumă)
                 val totaluriList = totalPerType.entries.toList()
 
                 for (i in totaluriList.indices step 2) {
@@ -219,7 +158,6 @@ class MainActivity : AppCompatActivity() {
                                 addView(suma)
                             }
 
-                            // Poți adăuga funcție de click dacă vrei
                             bloc.setOnClickListener {
                                 val intent = Intent(this@MainActivity, SourceListActivity::class.java)
                                 intent.putExtra("sourceType", tip)
@@ -235,40 +173,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        lifecycleScope.launch {
-            val transactions = dao.getAll()
-            val formatted = transactions.joinToString("\n") { tranzactie ->
-                "${tranzactie.date} - ${tranzactie.category.uppercase()}: ${tranzactie.amount} lei"
-            }
-
-            runOnUiThread {
-                textView.text = if (formatted.isEmpty()) "Nicio tranzacție" else formatted
-            }
-        }
-
-        val clearButton = findViewById<Button>(R.id.button6) // presupunem că ai un buton cu acest ID
-
+        val clearButton = findViewById<Button>(R.id.button6)
         clearButton.setOnClickListener {
-            val db = Room.databaseBuilder(
-                applicationContext,
-                AppDatabase::class.java,
-                "transactions-db"
-            )
-                .fallbackToDestructiveMigration()
-                .build()
-
-            val dao = db.transactionDao()
-            val ds=db.sourceDao()
-
             lifecycleScope.launch {
                 dao.deleteAll()
-                ds.deleteAll()
+                sourceDao.deleteAll()
                 runOnUiThread {
                     Toast.makeText(this@MainActivity, "Toate tranzacțiile au fost șterse", Toast.LENGTH_SHORT).show()
-                    updateUI() // dacă ai o funcție care reafișează UI-ul
+                    updateUI()
                 }
             }
-
         }
     }
 
@@ -278,42 +192,34 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI() {
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java,
-            "transactions-db"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
-
+        val db = DatabaseProvider.getDatabase(this)
         val dao = db.transactionDao()
-        val textView = findViewById<TextView>(R.id.transactionListTextView)
+        val sourceDao = db.sourceDao()
+        val categorieDao = db.categorieDao()
+
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
 
         lifecycleScope.launch {
             val transactions = dao.getAll()
+            val sources = sourceDao.getAll()
+            val categorii = categorieDao.getAll()
 
-            val incomes = transactions.filter { it.type == "Venit" }.map { it.amount }
-            val expenses = transactions.filter { it.type == "Cheltuiala" }.map { it.amount }
-
-            val totalIncome = incomes.sum()
-            val totalExpense = expenses.sum()
-
-            val result = transactions.joinToString("\n") {
-                "${it.date} - ${it.category.uppercase()}: ${it.amount} lei"
+            val withSourceAndCategorie = transactions.map { t ->
+                val source = sources.find { it.id == t.sourceId } ?: Source(0, "Necunoscut", "", 0.0)
+                val categorie = categorii.find { it.id == t.categorieId } ?: Categorie(0, "Necunoscut", "Fără categorie", "", null)
+                TransactionWithSourceAndCategorie(t, source, categorie)
             }
 
             runOnUiThread {
-                //totalIncomeText.text = totalIncome.toString() + " lei"
-                //totalExpenseText.text = totalExpense.toString() + " lei"
-                textView.text = if (result.isEmpty()) "Nicio tranzacție" else result
+                recyclerView.adapter = TransactionAdapter(withSourceAndCategorie)
             }
         }
 
+        val tvVeziIstoricul = findViewById<TextView>(R.id.tvVeziIstoricul)
+        tvVeziIstoricul.setOnClickListener {
+            val intent = Intent(this, TranzactiiActivity::class.java)
+            startActivityForResult(intent, 123)
+        }
     }
-
-
-
-
-
-
 }

@@ -37,16 +37,37 @@ android {
 }
 
 dependencies {
+    // 🔧 Bază: Kotlin, compatibilitate și suport Android
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.activity)
-    implementation(libs.androidx.constraintlayout)
+    // 📷 CameraX
+    implementation("androidx.camera:camera-camera2:1.2.3")
+    implementation("androidx.camera:camera-lifecycle:1.2.3")
+    implementation("androidx.camera:camera-view:1.2.3")
+
+    // 📦 MLKit Barcode scanning
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+    // 🗂️ Room Database
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+
+    // 🔁 Lifecycle
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+
+    // 🌐 Rețea
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // 🧽 HTML Parsing
+    implementation("org.jsoup:jsoup:1.17.2")
+
+    // ✅ Teste
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }
+

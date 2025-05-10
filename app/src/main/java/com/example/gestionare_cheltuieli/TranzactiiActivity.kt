@@ -1,10 +1,6 @@
 package com.example.gestionare_cheltuieli
 
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,65 +9,52 @@ import androidx.room.Room
 import kotlinx.coroutines.launch
 
 class TranzactiiActivity : AppCompatActivity() {
-    private lateinit var dao: TransactionDao
-    private val selectedItems = mutableSetOf<Transaction>()
-    private lateinit var adapter: TransactionAdapter
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var transactionDao: TransactionDao
+    private lateinit var sourceDao: SourceDao
+    private lateinit var categoryDao: CategorieDao
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tranzactii)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
-        val deleteButton = findViewById<Button>(R.id.deleteButton)
-
-
-
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java,
-            "transactions-db"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
-        dao = db.transactionDao()
-
+        recyclerView = findViewById(R.id.istoricRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = TransactionAdapter(
-            emptyList(),
-            selectedItems,
-            onItemClick = { tranzactie ->
-                val intent = Intent(this, EditTransactionActivity::class.java)
-                intent.putExtra("transaction_id", tranzactie.id)
-                startActivity(intent)
-            }
-        )
-        recyclerView.adapter = adapter
 
-        loadTransactions()
+        val db = DatabaseProvider.getDatabase(this)
 
-        deleteButton.setOnClickListener {
-            lifecycleScope.launch {
-                selectedItems.forEach { dao.deleteTransaction(it) }
-                selectedItems.clear()
-                loadTransactions()
-            }
-        }
+        transactionDao = db.transactionDao()
+        sourceDao = db.sourceDao()
+        categoryDao=db.categorieDao()
     }
 
     override fun onResume() {
-        super.onResume()
-        loadTransactions()
-    }
+                super.onResume()
 
-    private fun loadTransactions() {
         lifecycleScope.launch {
-            val all = dao.getAll()
+            val tranzactii = transactionDao.getAll()
+            val surse = sourceDao.getAll()
+            val categorii = categoryDao.getAll()
 
-            Log.d("lista",all.toString())
-            Log.d("DEBUG", "Total tranzacții: ${all.size}")
+            val elemente = tranzactii.mapNotNull { tranzactie ->
+                val sursa = surse.find { s -> s.id == tranzactie.sourceId }
+                val categorie = categorii.find { c -> c.id == tranzactie.categorieId }
+
+                if (sursa != null && categorie != null) {
+                    TranzactieAfisata(
+                        id = tranzactie.id,
+                        sourceType = sursa.type,
+                        category = categorie.category,
+                        amount = tranzactie.amount,
+                        date = tranzactie.date,
+                        type = categorie.type, // "Venit" / "Cheltuială"
+                        subcategory = categorie.subcategory
+                    )
+                } else null
+            }
 
             runOnUiThread {
-                adapter.updateData(all)
+                recyclerView.adapter = SelectableTransactionAdapter(elemente)
             }
         }
     }

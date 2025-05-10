@@ -1,48 +1,69 @@
 package com.example.gestionare_cheltuieli
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.TextView
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import kotlinx.coroutines.launch
 
-class TranzactionLook: AppCompatActivity() {
+
+class TranzactionLook : AppCompatActivity() {
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var dao: TransactionDao
+    private lateinit var sourceDao: SourceDao
+    private lateinit var categorieDao: CategorieDao
+
+    private val selectedItems = mutableSetOf<Transaction>()
+    private lateinit var adapter: TranzactieSelectabilaAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.look_tranzaction)
 
-        val textView = findViewById<TextView>(R.id.tvListaTranzactii)
+        recyclerView = findViewById(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
 
-        textView.setOnClickListener {
-            val intent = Intent(this, TranzactiiActivity::class.java)
-            startActivity(intent)
+        val deleteButton = findViewById<Button>(R.id.deleteButton)
+
+        val db = DatabaseProvider.getDatabase(this)
+
+
+        dao = db.transactionDao()
+        sourceDao = db.sourceDao()
+        categorieDao = db.categorieDao()
+
+        loadTransactions()
+
+        deleteButton.setOnClickListener {
+            lifecycleScope.launch {
+                selectedItems.forEach { dao.deleteTransaction(it) }
+                selectedItems.clear()
+                loadTransactions()
+            }
         }
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java,
-            "transactions-db"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
-        val dao = db.transactionDao()
+    }
 
+    private fun loadTransactions() {
         lifecycleScope.launch {
             val tranzactii = dao.getAll()
-            val text = if (tranzactii.isEmpty()) {
-                "Nicio tranzacție înregistrată"
-            } else {
-                tranzactii.joinToString("\n") {
-                    "${it.date} - ${it.category.uppercase()}: ${it.amount} lei"
+            val sources = sourceDao.getAll()
+            val categorii = categorieDao.getAll()
 
+            val listaAfisabila = tranzactii.mapNotNull { tranzactie ->
+                val sursa = sources.find { it.id == tranzactie.sourceId }
+                val categorie = categorii.find { it.id == tranzactie.categorieId }
 
-
-                }
+                if (sursa != null && categorie != null) {
+                    TranzactieSelectabil(tranzactie, sursa, categorie)
+                } else null
             }
 
             runOnUiThread {
-                textView.text = text
+                adapter = TranzactieSelectabilaAdapter(listaAfisabila, selectedItems)
+                recyclerView.adapter = adapter
             }
         }
     }

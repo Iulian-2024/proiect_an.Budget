@@ -1,36 +1,33 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-
-
-    <CheckBox
-        android:id="@+id/checkBox"
-        android:layout_width="48dp"
-        android:layout_height="0dp"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="4dp"
-        android:textColor="@android:color/white"
-        android:textSize="8sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.044"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:gravity="center_vertical">
 
     <TextView
-        android:id="@+id/transactionText"
-        android:layout_width="0dp"
+        android:id="@+id/textCategory"
+        android:layout_width="69dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:textSize="16sp"
-        android:textColor="@android:color/white"
-        app:layout_constraintStart_toEndOf="@id/checkBox"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:layout_weight="1"
+        android:text="category"
+        android:textSize="14sp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:id="@+id/textSubCategory"
+        android:layout_width="143dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="subCategory"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/textAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="5000.00 lei"
+        android:textSize="14sp" />
+</LinearLayout>

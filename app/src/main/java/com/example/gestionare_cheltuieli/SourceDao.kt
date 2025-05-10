@@ -16,9 +16,10 @@ interface SourceDao {
     suspend fun delete(source: Source)
     @Update
     suspend fun update(source: Source)
-
     @Query("SELECT COUNT(*) FROM sources")
     suspend fun count(): Int
     @Query("DELETE FROM transactions")
     suspend fun deleteAll()
+    @Query("DELETE FROM sources WHERE id = :id")
+    suspend fun deleteById(id: Int)
 }

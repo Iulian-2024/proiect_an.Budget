@@ -13,24 +13,36 @@ class  Cheltuieli: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_venituri)
-        var textView = findViewById<TextView>(R.id.textView6)
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java,
-            "transactions-db"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
 
-        val dao = db.transactionDao()
+        val textView = findViewById<TextView>(R.id.textView6)
+
+        val db = DatabaseProvider.getDatabase(this)
+
+
+        val transactionDao = db.transactionDao()
+        val categorieDao = db.categorieDao()
+
         lifecycleScope.launch {
-            val cheltuieli = dao.getAll().filter { it.type == "Cheltuiala" }
+            val tranzactii = transactionDao.getAll()
+            val categorii = categorieDao.getAll()
+            val categoriiMap = categorii.associateBy { it.id }
 
-            val text = if (cheltuieli.isEmpty()) {
+            // Filtrăm doar cheltuielile pe baza categoriei
+            val cheltuieli = tranzactii.filter {
+                val cat = categoriiMap[it.categorieId]
+                cat?.type?.lowercase() == "cheltuiala"
+            }
+
+            // Grupăm după numele categoriei mari (ex. "Transport")
+            val totaluriPeCategorii = cheltuieli
+                .groupBy { categoriiMap[it.categorieId]?.category ?: "Necunoscut" }
+                .mapValues { entry -> entry.value.sumOf { it.amount } }
+
+            val text = if (totaluriPeCategorii.isEmpty()) {
                 "Nu există cheltuieli înregistrate"
             } else {
-                cheltuieli.joinToString("\n") {
-                    "${it.date} - ${it.category.uppercase()}: ${it.amount} lei"
+                totaluriPeCategorii.entries.joinToString("\n") { (categorie, suma) ->
+                    "${categorie.uppercase()}: %.2f lei".format(suma)
                 }
             }
 
@@ -39,4 +51,5 @@ class  Cheltuieli: AppCompatActivity() {
             }
         }
     }
+
 }

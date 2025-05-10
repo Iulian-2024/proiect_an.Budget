@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Camera preview -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Buton: Scanează din nou (CENTRU JOS) -->
+    <Button
+        android:id="@+id/scanAgainBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Scanează din nou"
+        android:layout_gravity="bottom|center"
+        android:layout_marginBottom="24dp"
+        android:visibility="gone"
+        android:background="@android:color/holo_green_light"
+        android:textColor="@android:color/white" />
+
+    <!-- Buton: Vezi bonuri (DREAPTA JOS) -->
+
+</FrameLayout>

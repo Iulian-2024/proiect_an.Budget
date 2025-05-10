@@ -1,63 +1,61 @@
 package com.example.gestionare_cheltuieli
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Embedded
+import androidx.room.Relation
 
 class TransactionAdapter(
-    private var transactions: List<Transaction> = emptyList(),
-    private val selectedItems: MutableSet<Transaction>,
-    private val onItemClick: (Transaction) -> Unit
-) : RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder>() {
+    private val transactions: List<TransactionWithSourceAndCategorie>
+) : RecyclerView.Adapter<TransactionAdapter.ViewHolder>() {
 
-    inner class TransactionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
-        val textView: TextView = itemView.findViewById(R.id.transactionText)
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val tvCategory: TextView = itemView.findViewById(R.id.textCategory)
+        val tvSubCategory: TextView = itemView.findViewById(R.id.textSubCategory)
+        val tvAmount: TextView = itemView.findViewById(R.id.textAmount)
     }
 
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_transaction, parent, false)
-        return TransactionViewHolder(view)
-
-
+        return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
-        val transaction = transactions[position]
-        holder.textView.text = "${transaction.date} - ${transaction.category}: ${transaction.amount} lei"
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val item = transactions[position]
 
-        holder.checkBox.setOnCheckedChangeListener(null)
-        holder.checkBox.isChecked = selectedItems.contains(transaction)
+        val categorie = item.categorie
+        val tip = categorie.type.lowercase()
 
-        // click pe checkbox -> bifează/débifează
-        holder.checkBox.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                selectedItems.add(transaction)
-            } else {
-                selectedItems.remove(transaction)
-            }
-        }
+        holder.tvCategory.text = categorie.category
+        holder.tvSubCategory.text =  categorie.subcategory
+        holder.tvAmount.text = "%.2f lei".format(item.transaction.amount)
 
-        // click pe item -> deschide pentru modificare
-        holder.itemView.setOnClickListener {
-            // doar dacă click-ul nu a fost pe checkbox
-            if (!holder.checkBox.isPressed) {
-                onItemClick(transaction)
-            }
+        if (tip == "venit") {
+            holder.tvAmount.setTextColor(Color.parseColor("#4CAF50")) // verde
+        } else {
+            holder.tvAmount.setTextColor(Color.parseColor("#F44336")) // roșu
         }
     }
 
-
-    override fun getItemCount(): Int = transactions.size
-
-    fun updateData(newList: List<Transaction>) {
-        transactions = newList
-        notifyDataSetChanged()
-    }
-
+    override fun getItemCount() = transactions.size
 }
+
+
+data class TransactionWithSourceAndCategorie(
+    @Embedded val transaction: Transaction,
+    @Relation(
+        parentColumn = "sourceId",
+        entityColumn = "id"
+    )
+    val source: Source,
+    @Relation(
+        parentColumn = "categorieId",
+        entityColumn = "id"
+    )
+    val categorie: Categorie
+)

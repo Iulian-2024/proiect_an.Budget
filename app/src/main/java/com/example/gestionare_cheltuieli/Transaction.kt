@@ -8,9 +8,8 @@ import androidx.room.PrimaryKey
 data class Transaction(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val amount: Double,
-    val type: String, // „income” sau „expense”
-    val category: String, // 🔹 Nou câmp
     val description: String,
     val date: String,
-    val sourceId: Int
+    val sourceId: Int,
+    val categorieId: Int
 )

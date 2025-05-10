@@ -6,13 +6,17 @@ import androidx.room.*
 interface TransactionDao {
 
     @Insert
-    suspend fun insert(transaction: Transaction)
+    suspend fun insert(transaction: Transaction): Long
 
     @Query("SELECT * FROM transactions ORDER BY date DESC")
     suspend fun getAll(): List<Transaction>
 
-    @Query("SELECT SUM(amount) FROM transactions WHERE type = :type")
-    suspend fun getTotalByType(type: String): Double?
+    @Query("""
+    SELECT SUM(t.amount) FROM transactions t
+    INNER JOIN categorii c ON t.categorieId = c.id
+    WHERE c.type = :tip
+""")
+    suspend fun getTotalByType(tip: String): Double?
 
     @Query("DELETE FROM transactions")
     suspend fun deleteAll()
@@ -28,4 +32,11 @@ interface TransactionDao {
 
     @Query("SELECT COUNT(*) FROM transactions")
     suspend fun count(): Int
+
+
+    @Query("SELECT * FROM transactions")
+    suspend fun getAllWithCategorieAndSource(): List<TransactionWithSourceAndCategorie>
+
+
+
 }

@@ -62,20 +62,47 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.932" />
 
+
     <TextView
-        android:id="@+id/transactionListTextView"
-        android:layout_width="370dp"
-        android:layout_height="249dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:text="Tranzacțiile tale vor apărea aici"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.487"
+        android:id="@+id/transactionsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="16dp"
+        android:text="Tranzacțiile"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/recyclerView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.63" />
+        app:layout_constraintVertical_bias="0.969" />
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="345dp"
+        android:layout_height="228dp"
+        android:padding="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sourceTotalsLayout" />
+
+    <TextView
+        android:id="@+id/tvVeziIstoricul"
+        android:layout_width="347dp"
+        android:layout_height="227dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="16dp"
+        android:text=""
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/recyclerView"
+        app:layout_constraintStart_toStartOf="@+id/recyclerView"
+        app:layout_constraintTop_toTopOf="@+id/recyclerView" />
+
 
     <Button
         android:id="@+id/button6"
@@ -98,16 +125,17 @@
 
     <LinearLayout
         android:id="@+id/sourceTotalsLayout"
-        android:layout_width="376dp"
-        android:layout_height="201dp"
+        android:layout_width="316dp"
+        android:layout_height="146dp"
         android:layout_margin="16dp"
+        android:background="@drawable/border_background"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.656"
+        app:layout_constraintHorizontal_bias="0.389"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.164" />
+        app:layout_constraintVertical_bias="0.165" />
 </androidx.constraintlayout.widget.ConstraintLayout>

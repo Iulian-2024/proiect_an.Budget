@@ -3,6 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools">
 
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-feature android:name="android.hardware.camera.any" />
+
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:allowBackup="true"
@@ -33,6 +41,13 @@
         <activity android:name=".TranzactionLook"/>
         <activity android:name=".EditTransactionActivity"/>
         <activity android:name=".SourceListActivity" />
+        <activity android:name=".AddSourceActivity" />
+        <activity android:name=".DeleteSourceActivity" />
+        <activity android:name=".TransactionsBySourceActivity" />
+        <activity android:name=".QRReceiptScannerActivity"
+            tools:ignore="Instantiatable" />
+        <activity android:name=".ReceiptListActivity" />
+
     </application>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
